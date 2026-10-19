@@ -33,8 +33,8 @@ class WeatherApp(tb.Window):
         self.bind("<F11>", self._toggle_fullscreen)
         self.bind("<Escape>", self._exit_fullscreen)
 
-        # --- ACTIVAR PANTALLA COMPLETA AL INICIAR ---
-        self._toggle_fullscreen()
+        # --- FORZAR FULLSCREEN CON RETARDO PARA LINUX / RASPBERRY PI ---
+        self.after(200, self._force_fullscreen)
 
         # Si tenemos coordenadas guardadas, cargar clima directamente
         if self.lat and self.lon and self.current_city != "Detectando...":
