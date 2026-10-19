@@ -156,7 +156,7 @@ class WeatherApp(tb.Window):
             lbl_dname = tb.Label(day_frame, text="---", font=("DejaVu Sans", 9, "bold"), anchor=CENTER)
             lbl_dname.pack(fill=X)
 
-            lbl_dicon = tb.Label(day_frame, text="...", font=("DejaVu Sans", 12, "bold"), anchor=CENTER)
+            lbl_dicon = tb.Label(day_frame, text="...", font=("DejaVu Sans", 14, "bold"), anchor=CENTER)
             lbl_dicon.pack(fill=X, pady=4)
 
             lbl_dtemp = tb.Label(day_frame, text="-- / --", font=("DejaVu Sans", 9), foreground="#38BDF8",
@@ -228,7 +228,7 @@ class WeatherApp(tb.Window):
         curr_grid = tb.Frame(weather_inner_frame)
         curr_grid.pack(fill=X, pady=8)
 
-        self.lbl_icon = tb.Label(curr_grid, text="[Clima]", font=("DejaVu Sans", 12, "bold"))
+        self.lbl_icon = tb.Label(curr_grid, text="☀", font=("DejaVu Sans", 22, "bold"))
         self.lbl_icon.pack(side=LEFT, padx=(0, 12))
 
         temp_col = tb.Frame(curr_grid)
@@ -438,34 +438,34 @@ class WeatherApp(tb.Window):
         self.lbl_desc.config(text=message)
         self.lbl_temp.config(text="-- C")
         self.lbl_humidity.config(text="-- %")
-        self.lbl_icon.config(text="[!]️")
+        self.lbl_icon.config(text="!")
 
     @staticmethod
     def _interpret_weather_code(code):
         mapping = {
-            0: ("Despejado", "[Sol]"),
-            1: ("Parcialmente despejado", "[Cielo]"),
-            2: ("Parcialmente nublado", "[Nubes]"),
-            3: ("Nublado", "[Nublado]"),
-            45: ("Niebla", "[Niebla]"),
-            48: ("Niebla con escarcha", "[Niebla]"),
-            51: ("Llovizna ligera", "[Lluvia]"),
-            53: ("Llovizna moderada", "[Lluvia]"),
-            55: ("Llovizna intensa", "[Lluvia]"),
-            61: ("Lluvia ligera", "[Lluvia]"),
-            63: ("Lluvia moderada", "[Lluvia]"),
-            65: ("Lluvia fuerte", "[Lluvia]"),
-            71: ("Nieve ligera", "[Nieve]"),
-            73: ("Nieve moderada", "[Nieve]"),
-            75: ("Nieve fuerte", "[Nieve]"),
-            80: ("Chubascos ligeros", "[Lluvia]"),
-            81: ("Chubascos moderados", "[Lluvia]"),
-            82: ("Chubascos violentos", "[Tormenta]"),
-            95: ("Tormenta electrica", "[Tormenta]"),
-            96: ("Tormenta con granizo", "[Tormenta]"),
-            99: ("Tormenta fuerte", "[Tormenta]"),
+            0: ("Despejado", "☀"),
+            1: ("Parcialmente despejado", "☼"),
+            2: ("Parcialmente nublado", "☁"),
+            3: ("Nublado", "☁"),
+            45: ("Niebla", "≡"),
+            48: ("Niebla con escarcha", "≡"),
+            51: ("Llovizna ligera", "☂"),
+            53: ("Llovizna moderada", "☂"),
+            55: ("Llovizna intensa", "☂"),
+            61: ("Lluvia ligera", "☂"),
+            63: ("Lluvia moderada", "☂"),
+            65: ("Lluvia fuerte", "☂"),
+            71: ("Nieve ligera", "❄"),
+            73: ("Nieve moderada", "❄"),
+            75: ("Nieve fuerte", "❄"),
+            80: ("Chubascos ligeros", "☂"),
+            81: ("Chubascos moderados", "☂"),
+            82: ("Chubascos violentos", "⚡"),
+            95: ("Tormenta electrica", "⚡"),
+            96: ("Tormenta con granizo", "⚡"),
+            99: ("Tormenta fuerte", "⚡"),
         }
-        return mapping.get(code, ("Variable", "[Clima]"))
+        return mapping.get(code, ("Variable", "☁"))
 
 
 if __name__ == "__main__":
