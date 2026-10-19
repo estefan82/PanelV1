@@ -33,11 +33,8 @@ class WeatherApp(tb.Window):
         self.bind("<F11>", self._toggle_fullscreen)
         self.bind("<Escape>", self._exit_fullscreen)
 
-        # --- ACTIVAR PANTALLA COMPLETA AL INICIAR ---
-        #self._toggle_fullscreen()
-
-        # --- FORZAR FULLSCREEN CON RETARDO PARA LINUX / RASPBERRY PI ---
-        self.after(200, self._toggle_fullscreen)
+        # Forzar Fullscreen con retardo optimizado para Raspberry Pi / Linux
+        self.after(200, self._force_fullscreen)
 
         # Si tenemos coordenadas guardadas, cargar clima directamente
         if self.lat and self.lon and self.current_city != "Detectando...":
@@ -47,8 +44,13 @@ class WeatherApp(tb.Window):
         else:
             threading.Thread(target=self._init_location_and_weather, daemon=True).start()
 
+    def _force_fullscreen(self):
+        if not self.is_fullscreen:
+            self.is_fullscreen = True
+            self.attributes("-fullscreen", True)
+            self.btn_fs.config(text="Restaurar")
+
     def _load_config(self):
-        """Carga las preferencias desde el archivo config.ini."""
         self.config = configparser.ConfigParser()
         if os.path.exists(CONFIG_FILE):
             self.config.read(CONFIG_FILE)
@@ -69,7 +71,6 @@ class WeatherApp(tb.Window):
             self.weather_font_size = 22
 
     def _save_config(self):
-        """Guarda las preferencias actuales en el archivo config.ini."""
         if not self.config.has_section("Settings"):
             self.config.add_section("Settings")
 
@@ -92,35 +93,33 @@ class WeatherApp(tb.Window):
         style.configure('primary.TLabel', foreground='#38BDF8')
         style.configure('info.TLabel', foreground='#38BDF8')
         style.configure('secondary.TLabel', foreground='#94A3B8')
-        style.configure('TLabelframe.Label', font=('Segoe UI', 10, 'bold'), foreground='#38BDF8')
+        style.configure('TLabelframe.Label', font=('DejaVu Sans', 10, 'bold'), foreground='#38BDF8')
 
     def _build_ui(self):
         main_frame = tb.Frame(self, padding=15)
         main_frame.pack(fill=BOTH, expand=YES)
 
         # -------------------------------------------------------------
-        # 1. BARRA SUPERIOR: Selector de Temas + Controles
+        # 1. BARRA SUPERIOR
         # -------------------------------------------------------------
         top_bar = tb.Frame(main_frame)
         top_bar.pack(side=TOP, fill=X, pady=(0, 10))
 
         tb.Label(
             top_bar,
-            text="💡 [F11]: Fullscreen | Haz Clic en cualquier tarjeta para ver opciones",
-            font=("Segoe UI", 8),
+            text="[F11]: Fullscreen | Clic en tarjetas para configurar",
+            font=("DejaVu Sans", 8),
             bootstyle="secondary"
         ).pack(side=LEFT)
 
-        # Botón Pantalla Completa
         self.btn_fs = tb.Button(
             top_bar,
-            text="⛶ Fullscreen",
+            text="Fullscreen",
             bootstyle="info-outline",
             command=self._toggle_fullscreen
         )
         self.btn_fs.pack(side=RIGHT, padx=(5, 0))
 
-        # Desplegable para cambio de tema
         available_themes = ["darkly", "vapor", "pulse", "minty", "journal", "sandstone"]
 
         self.theme_combo = tb.Combobox(
@@ -135,15 +134,15 @@ class WeatherApp(tb.Window):
 
         tb.Label(
             top_bar,
-            text="🎨 Tema:",
-            font=("Segoe UI", 9, "bold"),
+            text="Tema:",
+            font=("DejaVu Sans", 9, "bold"),
             bootstyle="secondary"
         ).pack(side=RIGHT, padx=(5, 2))
 
         # -------------------------------------------------------------
         # 3. SECCIÓN INFERIOR: PREVISIÓN A 7 DÍAS
         # -------------------------------------------------------------
-        forecast_card = tb.Labelframe(main_frame, text=" 📅 Previsión a 7 Días ", padding=10, bootstyle="info")
+        forecast_card = tb.Labelframe(main_frame, text=" Prevision a 7 Dias ", padding=10, bootstyle="info")
         forecast_card.pack(side=BOTTOM, fill=X, pady=(10, 0))
 
         self.days_container = tb.Frame(forecast_card)
@@ -154,13 +153,14 @@ class WeatherApp(tb.Window):
             day_frame = tb.Frame(self.days_container, padding=(5, 8), bootstyle="secondary")
             day_frame.pack(side=LEFT, fill=X, expand=YES, padx=3)
 
-            lbl_dname = tb.Label(day_frame, text="---", font=("Segoe UI", 9, "bold"), anchor=CENTER)
+            lbl_dname = tb.Label(day_frame, text="---", font=("DejaVu Sans", 9, "bold"), anchor=CENTER)
             lbl_dname.pack(fill=X)
 
-            lbl_dicon = tb.Label(day_frame, text="⏳", font=("Segoe UI Emoji", 20), anchor=CENTER)
+            lbl_dicon = tb.Label(day_frame, text="...", font=("DejaVu Sans", 14, "bold"), anchor=CENTER)
             lbl_dicon.pack(fill=X, pady=4)
 
-            lbl_dtemp = tb.Label(day_frame, text="--° / --°", font=("Segoe UI", 9), foreground="#38BDF8", anchor=CENTER)
+            lbl_dtemp = tb.Label(day_frame, text="-- / --", font=("DejaVu Sans", 9), foreground="#38BDF8",
+                                 anchor=CENTER)
             lbl_dtemp.pack(fill=X)
 
             self.forecast_day_widgets.append({
@@ -176,7 +176,7 @@ class WeatherApp(tb.Window):
         top_content.pack(side=TOP, fill=BOTH, expand=YES)
 
         # --- Tarjeta Izquierda: Hora y Fecha ---
-        self.time_card = tb.Labelframe(top_content, text=" 🕒 Hora y Fecha (Haz Clic = Opciones) ", padding=15,
+        self.time_card = tb.Labelframe(top_content, text=" Hora y Fecha (Haz Clic = Opciones) ", padding=15,
                                        bootstyle="info")
         self.time_card.pack(side=LEFT, fill=BOTH, expand=YES, padx=(0, 5))
         self.time_card.config(cursor="hand2")
@@ -196,7 +196,7 @@ class WeatherApp(tb.Window):
         self.lbl_date = tb.Label(
             time_inner_frame,
             text="Cargando fecha...",
-            font=("Segoe UI", self.date_font_size, "bold"),
+            font=("DejaVu Sans", self.date_font_size, "bold"),
             bootstyle="secondary",
             anchor=CENTER
         )
@@ -207,7 +207,7 @@ class WeatherApp(tb.Window):
         # --- Tarjeta Derecha: Clima Actual ---
         self.weather_card = tb.Labelframe(
             top_content,
-            text=" 🌤️ Clima Actual (Haz Clic = Opciones) ",
+            text=" Clima Actual (Haz Clic = Opciones) ",
             padding=15,
             bootstyle="primary"
         )
@@ -219,8 +219,8 @@ class WeatherApp(tb.Window):
 
         self.lbl_city = tb.Label(
             weather_inner_frame,
-            text=f"📍 {self.current_city}",
-            font=("Segoe UI", 12, "bold"),
+            text=f"Ubicacion: {self.current_city}",
+            font=("DejaVu Sans", 12, "bold"),
             bootstyle="primary"
         )
         self.lbl_city.pack(anchor=W)
@@ -228,24 +228,24 @@ class WeatherApp(tb.Window):
         curr_grid = tb.Frame(weather_inner_frame)
         curr_grid.pack(fill=X, pady=8)
 
-        self.lbl_icon = tb.Label(curr_grid, text="⏳", font=("Segoe UI Emoji", 28))
+        self.lbl_icon = tb.Label(curr_grid, text="☀", font=("DejaVu Sans", 22, "bold"))
         self.lbl_icon.pack(side=LEFT, padx=(0, 12))
 
         temp_col = tb.Frame(curr_grid)
         temp_col.pack(side=LEFT, expand=YES, anchor=W)
 
-        self.lbl_temp = tb.Label(temp_col, text="-- °C", font=("Segoe UI", self.weather_font_size, "bold"),
+        self.lbl_temp = tb.Label(temp_col, text="-- C", font=("DejaVu Sans", self.weather_font_size, "bold"),
                                  foreground="#38BDF8")
         self.lbl_temp.pack(anchor=W)
 
-        self.lbl_desc = tb.Label(temp_col, text="Consultando...", font=("Segoe UI", 9), bootstyle="secondary")
+        self.lbl_desc = tb.Label(temp_col, text="Consultando...", font=("DejaVu Sans", 9), bootstyle="secondary")
         self.lbl_desc.pack(anchor=W)
 
         hum_col = tb.Frame(curr_grid)
         hum_col.pack(side=RIGHT)
 
-        tb.Label(hum_col, text="Humedad", font=("Segoe UI", 8, "bold"), bootstyle="secondary").pack(anchor=E)
-        self.lbl_humidity = tb.Label(hum_col, text="-- %", font=("Segoe UI", 15, "bold"), foreground="#4ADE80")
+        tb.Label(hum_col, text="Humedad", font=("DejaVu Sans", 8, "bold"), bootstyle="secondary").pack(anchor=E)
+        self.lbl_humidity = tb.Label(hum_col, text="-- %", font=("DejaVu Sans", 15, "bold"), foreground="#4ADE80")
         self.lbl_humidity.pack(anchor=E)
 
         self._bind_click_recursive(self.weather_card, lambda e: self._open_weather_options())
@@ -255,51 +255,107 @@ class WeatherApp(tb.Window):
         for child in widget.winfo_children():
             self._bind_click_recursive(child, callback)
 
+    def _show_font_spinner_dialog(self, title, initial_value, min_val, max_val, on_apply):
+        """Abre un diálogo modal sin barra superior, en primer plano (topmost) y con botones táctiles."""
+        dialog = tb.Toplevel(self)
+        dialog.overrideredirect(True)  # Eliminar barra superior y bordes
+        dialog.attributes("-topmost", True)  # Siempre por encima de todo
+        dialog.geometry("320x190")
+        dialog.grab_set()
+
+        # Centrar ventana emergente respecto a la principal
+        dialog.update_idletasks()
+        x = self.winfo_x() + (self.winfo_width() // 2) - (320 // 2)
+        y = self.winfo_y() + (self.winfo_height() // 2) - (190 // 2)
+        dialog.geometry(f"+{x}+{y}")
+
+        # Marco interior con borde visual elegante
+        container = tb.Frame(dialog, padding=15, bootstyle="secondary")
+        container.pack(fill=BOTH, expand=YES)
+
+        tb.Label(container, text=title, font=("DejaVu Sans", 10, "bold"), bootstyle="inverse-secondary").pack(
+            pady=(5, 10))
+
+        spin_frame = tb.Frame(container)
+        spin_frame.pack(pady=10)
+
+        current_val = tk.IntVar(value=initial_value)
+
+        def decrease():
+            if current_val.get() > min_val:
+                current_val.set(current_val.get() - 2)
+
+        def increase():
+            if current_val.get() < max_val:
+                current_val.set(current_val.get() + 2)
+
+        btn_minus = tb.Button(spin_frame, text=" ➖ ", bootstyle="danger", command=decrease, width=4)
+        btn_minus.pack(side=LEFT, padx=5)
+
+        entry_val = tb.Entry(spin_frame, textvariable=current_val, font=("DejaVu Sans", 14, "bold"), width=6,
+                             justify="center")
+        entry_val.pack(side=LEFT, padx=5)
+
+        btn_plus = tb.Button(spin_frame, text=" ➕ ", bootstyle="success", command=increase, width=4)
+        btn_plus.pack(side=LEFT, padx=5)
+
+        def save_and_close():
+            try:
+                val = int(current_val.get())
+                val = max(min_val, min(max_val, val))
+                on_apply(val)
+                dialog.destroy()
+            except ValueError:
+                dialog.destroy()
+
+        btn_save = tb.Button(container, text="Aceptar y Cerrar", bootstyle="primary", command=save_and_close, width=18)
+        btn_save.pack(pady=(10, 0))
+
     def _open_time_options(self):
         choice = Messagebox.show_question(
             message="¿Qué deseas ajustar en la sección de Hora y Fecha?",
             title="Opciones - Reloj",
-            buttons=["Cambiar Tamaño de Letra:primary", "Cancelar:secondary"],
+            buttons=["Ajustar Tamaño Letra:primary", "Cancelar:secondary"],
             parent=self
         )
 
-        if choice == "Cambiar Tamaño de Letra":
-            new_size = Querybox.get_integer(
-                prompt="Introduce el tamaño de la letra para la Hora:",
-                title="Tamaño de Fuente - Hora",
-                initialvalue=self.time_font_size,
-                minvalue=16,
-                maxvalue=72,
-                parent=self
-            )
-            if new_size:
+        if choice == "Ajustar Tamaño Letra":
+            def apply_size(new_size):
                 self.time_font_size = new_size
                 self.lbl_time.config(font=("Consolas", self.time_font_size, "bold"))
                 self._save_config()
+
+            self._show_font_spinner_dialog(
+                title="Tamaño de Fuente - Hora",
+                initial_value=self.time_font_size,
+                min_val=16,
+                max_val=72,
+                on_apply=apply_size
+            )
 
     def _open_weather_options(self):
         choice = Messagebox.show_question(
             message="¿Qué deseas hacer en la sección del Clima?",
             title="Opciones - Clima",
-            buttons=["Cambiar Ciudad:primary", "Cambiar Tamaño de Letra:info", "Cancelar:secondary"],
+            buttons=["Cambiar Ciudad:primary", "Ajustar Tamaño Letra:info", "Cancelar:secondary"],
             parent=self
         )
 
         if choice == "Cambiar Ciudad":
             self._open_city_dialog()
-        elif choice == "Cambiar Tamaño de Letra":
-            new_size = Querybox.get_integer(
-                prompt="Introduce el tamaño de la letra para la Temperatura:",
-                title="Tamaño de Fuente - Clima",
-                initialvalue=self.weather_font_size,
-                minvalue=14,
-                maxvalue=60,
-                parent=self
-            )
-            if new_size:
+        elif choice == "Ajustar Tamaño Letra":
+            def apply_size(new_size):
                 self.weather_font_size = new_size
-                self.lbl_temp.config(font=("Segoe UI", self.weather_font_size, "bold"))
+                self.lbl_temp.config(font=("DejaVu Sans", self.weather_font_size, "bold"))
                 self._save_config()
+
+            self._show_font_spinner_dialog(
+                title="Tamaño de Fuente - Clima",
+                initial_value=self.weather_font_size,
+                min_val=12,
+                max_val=60,
+                on_apply=apply_size
+            )
 
     def _open_city_dialog(self):
         city_input = Querybox.get_string(
@@ -315,7 +371,6 @@ class WeatherApp(tb.Window):
     def _geocode_and_update(self, city_name, save=True):
         self.lbl_desc.config(text="Buscando ciudad...")
         try:
-            # Limpiar nombre para la búsqueda (quitar el país si viene en el string)
             clean_search_query = city_name.split(",")[0].strip()
             geo_url = f"https://geocoding-api.open-meteo.com/v1/search?name={clean_search_query}&count=1&language=es&format=json"
             res = requests.get(geo_url, timeout=5).json()
@@ -348,22 +403,22 @@ class WeatherApp(tb.Window):
         self.is_fullscreen = not self.is_fullscreen
         self.attributes("-fullscreen", self.is_fullscreen)
         if self.is_fullscreen:
-            self.btn_fs.config(text="🗗 Restaurar")
+            self.btn_fs.config(text="Restaurar")
         else:
-            self.btn_fs.config(text="⛶ Fullscreen")
+            self.btn_fs.config(text="Fullscreen")
 
     def _exit_fullscreen(self, event=None):
         if self.is_fullscreen:
             self.is_fullscreen = False
             self.attributes("-fullscreen", False)
-            self.btn_fs.config(text="⛶ Fullscreen")
+            self.btn_fs.config(text="Fullscreen")
 
     def _update_clock(self):
         now = datetime.datetime.now()
         time_str = now.strftime("%H:%M:%S")
         self.lbl_time.config(text=time_str)
 
-        dias = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
+        dias = ["Lunes", "Martes", "Miercoles", "Jueves", "Viernes", "Sabado", "Domingo"]
         meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre",
                  "Noviembre", "Diciembre"]
 
@@ -382,9 +437,9 @@ class WeatherApp(tb.Window):
                 self.current_city = detected_city
                 self._geocode_and_update(detected_city, save=True)
             else:
-                self._set_weather_error("Ubicación no detectada")
+                self._set_weather_error("Ubicacion no detectada")
         except Exception:
-            self._set_weather_error("Sin conexión IP")
+            self._set_weather_error("Sin conexion IP")
 
     def _fetch_weather(self):
         if not self.lat or not self.lon:
@@ -403,8 +458,8 @@ class WeatherApp(tb.Window):
             code = current.get("weather_code", 0)
             desc, icon = self._interpret_weather_code(code)
 
-            self.lbl_city.config(text=f"📍 {self.current_city}")
-            self.lbl_temp.config(text=f"{round(temp)} °C" if temp is not None else "-- °C")
+            self.lbl_city.config(text=f"Ubicacion: {self.current_city}")
+            self.lbl_temp.config(text=f"{round(temp)} C" if temp is not None else "-- C")
             self.lbl_humidity.config(text=f"{humidity}%" if humidity is not None else "-- %")
             self.lbl_desc.config(text=desc)
             self.lbl_icon.config(text=icon)
@@ -415,7 +470,7 @@ class WeatherApp(tb.Window):
             tmin = daily.get("temperature_2m_min", [])
             ncodes = daily.get("weather_code", [])
 
-            dias_corto = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"]
+            dias_corto = ["Lun", "Mar", "Mie", "Jue", "Vie", "Sab", "Dom"]
 
             for i in range(min(7, len(times))):
                 date_str = times[i]
@@ -429,44 +484,45 @@ class WeatherApp(tb.Window):
                 widget_set = self.forecast_day_widgets[i]
                 widget_set["name"].config(text=day_label)
                 widget_set["icon"].config(text=day_icon)
-                widget_set["temp"].config(text=f"{max_t}° / {min_t}°")
+                widget_set["temp"].config(text=f"{max_t} / {min_t}")
 
         except Exception:
             self._set_weather_error("Error al actualizar datos")
 
     def _set_weather_error(self, message):
-        self.lbl_city.config(text=f"📍 {self.current_city}")
+        self.lbl_city.config(text=f"Ubicacion: {self.current_city}")
         self.lbl_desc.config(text=message)
-        self.lbl_temp.config(text="-- °C")
+        self.lbl_temp.config(text="-- C")
         self.lbl_humidity.config(text="-- %")
-        self.lbl_icon.config(text="⚠️")
+        self.lbl_icon.config(text="!")
 
     @staticmethod
     def _interpret_weather_code(code):
         mapping = {
-            0: ("Despejado", "☀️"),
-            1: ("Principalmente despejado", "🌤️"),
-            2: ("Parcialmente nublado", "⛅"),
-            3: ("Nublado", "☁️"),
-            45: ("Niebla", "🌫️"),
-            48: ("Niebla con escarcha", "🌫️"),
-            51: ("Llovizna ligera", "🌦️"),
-            53: ("Llovizna moderada", "🌦️"),
-            55: ("Llovizna intensa", "🌧️"),
-            61: ("Lluvia ligera", "🌧️"),
-            63: ("Lluvia moderada", "🌧️"),
-            65: ("Lluvia fuerte", "🌧️"),
-            71: ("Nieve ligera", "🌨️"),
-            73: ("Nieve moderada", "🌨️"),
-            75: ("Nieve fuerte", "❄️"),
-            80: ("Chubascos ligeros", "🌦️"),
-            81: ("Chubascos moderados", "🌧️"),
-            82: ("Chubascos violentos", "⛈️"),
-            95: ("Tormenta eléctrica", "🌩️"),
-            96: ("Tormenta con granizo leve", "⛈️"),
-            99: ("Tormenta con granizo fuerte", "⛈️"),
+            0: ("Despejado", "☀"),
+            1: ("Parcialmente despejado", "☼"),
+            2: ("Parcialmente nublado", "☁"),
+            3: ("Nublado", "☁"),
+            45: ("Niebla", "≡"),
+            48: ("Niebla con escarcha", "≡"),
+            51: ("Llovizna ligera", "☂"),
+            53: ("Llovizna moderada", "☂"),
+            55: ("Llovizna intensa", "☂"),
+            61: ("Lluvia ligera", "☂"),
+            63: ("Lluvia moderada", "☂"),
+            65: ("Lluvia fuerte", "☂"),
+            71: ("Nieve ligera", "❄"),
+            73: ("Nieve moderada", "❄"),
+            75: ("Nieve fuerte", "❄"),
+            80: ("Chubascos ligeros", "☂"),
+            81: ("Chubascos moderados", "☂"),
+            82: ("Chubascos violentos", "⚡"),
+            95: ("Tormenta electrica", "⚡"),
+            96: ("Tormenta con granizo", "⚡"),
+            99: ("Tormenta fuerte", "⚡"),
         }
-        return mapping.get(code, ("Variable", "🌡️"))
+        return mapping.get(code, ("Variable", "☁"))
+
 
 if __name__ == "__main__":
     app = WeatherApp()
